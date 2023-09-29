@@ -1,0 +1,275 @@
+import pandas as pd
+import streamlit as st
+import psycopg2
+import plotly.express as px
+import git
+import os
+import json
+
+git.Repo.clone_from("https://github.com/PhonePe/pulse.git", 'phonepe_pulse_git')
+
+
+#-----aggregated_transaction---#
+p1 = "/Users/vpro/project.py/phonepe_pulse_git/data/aggregated/transaction/country/india/state/"
+agg_trans_list = os.listdir(p1)
+
+data_for_trans = {'State': [], 'Year': [], 'Quarter': [], 'Transaction_type': [], 'Transaction_count': [],
+            'Transaction_amount': []}
+for state in agg_trans_list:
+    current_state = p1 + state + "/"
+    agg_year_list = os.listdir(current_state)
+    
+    for year in agg_year_list:
+        current_year = current_state + year + "/"
+        agg_file_list = os.listdir(current_year)
+        
+        for file in agg_file_list:
+            current_file = current_year + file
+            data = open(current_file, 'r')
+            A = json.load(data)
+            
+            for i in A['data']['transactionData']:
+                name = i['name']
+                count = i['paymentInstruments'][0]['count']
+                amount = i['paymentInstruments'][0]['amount']
+                data_for_trans['Transaction_type'].append(name)
+                data_for_trans['Transaction_count'].append(count)
+                data_for_trans['Transaction_amount'].append(amount)
+                data_for_trans['State'].append(state)
+                data_for_trans['Year'].append(year)
+                data_for_trans['Quarter'].append(int(file.strip('.json')))
+                
+df_agg_trans = pd.DataFrame(data_for_trans)
+#-----aggregated_user---#
+p2 = "/Users/vpro/project.py/phonepe_pulse_git/data/aggregated/user/country/india/state/"
+
+agg_user_list = os.listdir(p2)
+
+data_for_user = {'State': [], 'Year': [], 'Quarter': [], 'Brands': [], 'Count': [],
+            'Percentage': []}
+for state in agg_user_list:
+    current_state = p2 + state + "/"
+    agg_year_list = os.listdir(current_state)
+    
+    for year in agg_year_list:
+        current_year = current_state + year + "/"
+        agg_file_list = os.listdir(current_year)
+
+        for file in agg_file_list:
+            current_file = current_year + file
+            data = open(current_file, 'r')
+            B = json.load(data)
+            try:
+                for i in B["data"]["usersByDevice"]:
+                    brand_name = i["brand"]
+                    counts = i["count"]
+                    percents = i["percentage"]
+                    data_for_user["Brands"].append(brand_name)
+                    data_for_user["Count"].append(counts)
+                    data_for_user["Percentage"].append(percents)
+                    data_for_user["State"].append(state)
+                    data_for_user["Year"].append(year)
+                    data_for_user["Quarter"].append(int(file.strip('.json')))
+            except:
+                pass
+df_agg_user = pd.DataFrame(data_for_user)
+
+#-----map_transaction----#
+p3 = "/Users/vpro/project.py/phonepe_pulse_git/data/map/transaction/hover/country/india/state/"
+
+map_trans_list = os.listdir(p3)
+
+map_trans_data = {'State': [], 'Year': [], 'Quarter': [], 'District': [], 'Count': [],
+            'Amount': []}
+
+for state in map_trans_list:
+    current_state = p3 + state + "/"
+    map_year_list = os.listdir(current_state)
+    
+    for year in map_year_list:
+        current_year = current_state + year + "/"
+        map_file_list = os.listdir(current_year)
+        
+        for file in map_file_list:
+            current_file = current_year + file
+            data = open(current_file, 'r')
+            C = json.load(data)
+            
+            for i in C["data"]["hoverDataList"]:
+                district = i["name"]
+                count = i["metric"][0]["count"]
+                amount = i["metric"][0]["amount"]
+                map_trans_data["District"].append(district)
+                map_trans_data["Count"].append(count)
+                map_trans_data["Amount"].append(amount)
+                map_trans_data['State'].append(state)
+                map_trans_data['Year'].append(year)
+                map_trans_data['Quarter'].append(int(file.strip('.json')))
+                
+df_map_trans = pd.DataFrame(map_trans_data)
+
+#-----map_user-----#
+p4 = "/Users/vpro/project.py/phonepe_pulse_git/data/map/user/hover/country/india/state/"
+
+map_user_list = os.listdir(p4)
+
+map_user_data = {"State": [], "Year": [], "Quarter": [], "District": [],
+            "RegisteredUser": [], "AppOpens": []}
+
+for state in map_user_list:
+    current_state = p4 + state + "/"
+    map_year_list = os.listdir(current_state)
+    
+    for year in map_year_list:
+        current_year = current_state + year + "/"
+        map_file_list = os.listdir(current_year)
+        
+        for file in map_file_list:
+            current_file = current_year + file
+            data = open(current_file, 'r')
+            D = json.load(data)
+            
+            for i in D["data"]["hoverData"].items():
+                district = i[0]
+                registereduser = i[1]["registeredUsers"]
+                appOpens = i[1]['appOpens']
+                map_user_data["District"].append(district)
+                map_user_data["RegisteredUser"].append(registereduser)
+                map_user_data["AppOpens"].append(appOpens)
+                map_user_data['State'].append(state)
+                map_user_data['Year'].append(year)
+                map_user_data['Quarter'].append(int(file.strip('.json')))
+                
+df_map_user = pd.DataFrame(map_user_data)
+#--------top_transaction-------#
+p5 = "/Users/vpro/project.py/phonepe_pulse_git/data/top/transaction/country/india/state/"
+
+top_trans_list = os.listdir(p5)
+top_trans_data = {'State': [], 'Year': [], 'Quarter': [], 'Pincode': [], 'Transaction_count': [],
+            'Transaction_amount': []}
+
+for state in top_trans_list:
+    current_state = p5 + state + "/"
+    top_year_list = os.listdir(current_state)
+    
+    for year in top_year_list:
+        current_year = current_state + year + "/"
+        top_file_list = os.listdir(current_year)
+        
+        for file in top_file_list:
+            current_file = current_year + file
+            data = open(current_file, 'r')
+            E = json.load(data)
+            
+            for i in E['data']['pincodes']:
+                name = i['entityName']
+                count = i['metric']['count']
+                amount = i['metric']['amount']
+                top_trans_data['Pincode'].append(name)
+                top_trans_data['Transaction_count'].append(count)
+                top_trans_data['Transaction_amount'].append(amount)
+                top_trans_data['State'].append(state)
+                top_trans_data['Year'].append(year)
+                top_trans_data['Quarter'].append(int(file.strip('.json')))
+df_top_trans = pd.DataFrame(top_trans_data)
+#--------top_user-----------#
+p6 = "/Users/vpro/project.py/phonepe_pulse_git/data/top/user/country/india/state/"
+top_user_list = os.listdir(p6)
+top_user_data= {'State': [], 'Year': [], 'Quarter': [], 'Pincode': [],
+            'RegisteredUsers': []}
+
+for state in top_user_list:
+    current_state = p6 + state + "/"
+    top_year_list = os.listdir(current_state)
+    
+    for year in top_year_list:
+        current_year = current_state + year + "/"
+        top_file_list = os.listdir(current_year)
+        
+        for file in top_file_list:
+            current_file = current_year + file
+            data = open(current_file, 'r')
+            F = json.load(data)
+            
+            for i in F['data']['pincodes']:
+                name = i['name']
+                registeredUsers = i['registeredUsers']
+                top_user_data['Pincode'].append(name)
+                top_user_data['RegisteredUsers'].append(registeredUsers)
+                top_user_data['State'].append(state)
+                top_user_data['Year'].append(year)
+                top_user_data['Quarter'].append(int(file.strip('.json')))
+df_top_user = pd.DataFrame(top_user_data)
+
+def SQL_table_create():
+    kumar = psycopg2.connect(host='localhost', user='postgres', password='DINESHKUMAR', port=5432,database='phonepe')
+    dinesh = kumar.cursor()
+    dinesh.execute("create table if not exists aggregated_transaction(\
+                            state				varchar(255),\
+                            year				int,\
+                            quarter				int,\
+                            transaction_type	varchar(255),\
+                            transaction_count	int,\
+                            transaction_amount	float);\
+                  create table if not exists aggregated_user(\
+                            state				varchar(255),\
+                            year				int,\
+                            quarter				int,\
+                            user_brand			varchar(255),\
+                            user_count			int,\
+                            user_percentage		float);\
+                        create table if not exists map_transaction(\
+                            state				varchar(255),\
+                            year				int,\
+                            quarter				int,\
+                            district			varchar(255),\
+                            trans_count	int,\
+                            trans_amount	float);\
+                        create table if not exists map_user(state	varchar(255),year int,quarter int,\
+                            district			varchar(255),\
+                            registered_user		int,\
+                            app_opens			int);\
+                        create table if not exists top_transaction(\
+                            state				varchar(255),\
+                            year				int,\
+                            quarter			 int,\
+                            pincode			varchar(255),\
+                            trans_count		int,\
+                            trans_amount		float);\
+                       create table if not exists top_user(\
+                            state				varchar(255),\
+                            year				int,\
+                            quarter				int,\
+                            pincode			varchar(255),\
+                            registered_user		int)")
+    kumar.commit()
+    kumar.close()
+SQL_table_create()
+def sql_data_transfor():
+    kumar = psycopg2.connect(host='localhost', user='postgres', password='DINESHKUMAR', port=5432,database='phonepe')
+    dinesh = kumar.cursor() 
+    dinesh.executemany("insert into aggregated_transaction(state, year, quarter, transaction_type,\
+                            transaction_count, transaction_amount)\
+                           values(%s,%s,%s,%s,%s,%s)", df_agg_trans.values.tolist())
+        
+    dinesh.executemany("insert into aggregated_user(state, year, quarter, user_brand,\
+                            user_count, user_percentage)\
+                           values(%s,%s,%s,%s,%s,%s)", df_agg_user .values.tolist())
+        
+    dinesh.executemany("insert into map_transaction(state, year, quarter, district,\
+                            trans_count, trans_amount)\
+                           values(%s,%s,%s,%s,%s,%s)", df_map_trans.values.tolist())
+        
+    dinesh.executemany("insert into map_user(state, year, quarter, district,\
+                            registered_user, app_opens)\
+                           values(%s,%s,%s,%s,%s,%s)", df_map_user.values.tolist())
+       
+    dinesh.executemany("insert into top_transaction(state, year, quarter, pincode,trans_count,trans_amount)\
+                           values(%s,%s,%s,%s,%s,%s)", df_top_trans.values.tolist())
+        
+    dinesh.executemany("insert into top_user(state, year, quarter, pincode,registered_user)\
+                           values(%s,%s,%s,%s,%s)",df_top_user.values.tolist())
+    kumar.commit()
+    kumar.close()
+
+sql_data_transfor()  
