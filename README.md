@@ -3,11 +3,11 @@ Phonepe-Data-Visualization-And-Exploration
 The aim of this project is to develop a solution that extracts, transforms, and visualizes phonepe pulse data from the Phonepe Pulse GitHub repository.
 
 Packages needed for this project:
-pip install pandas
-pip install psycopg2 
-pip install requests
-pip install streamlit
-pip install plotly
+  pip install pandas\n
+  pip install psycopg2\n 
+  pip install requests\n
+  pip install streamlit\n
+  pip install plotly
 
 •	Data Extraction:
           Cloning the phonePe Pulse data from the GitHub repository to your local directory in suitable format (json or csv).
