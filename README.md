@@ -22,8 +22,8 @@ pip install plotly
            The Streamlit app provides an  interface to interact with the charts and explore the data visually.
 
 •	Plotly:
-            Utilizing the Plotly, users can create various types of charts, including line charts, bar  charts, pie charts, and more.These visualizations enhance the understanding   
-     the data.
+            Utilizing the Plotly, users can create various types of charts, including line charts, bar  charts, pie charts, and more.
+           These visualizations enhance the understanding the data.
 
 •	Live Geo Visualization
           Create a live geo visualization dashboard using Streamlit and Plotly for interactive data exploration, allowing you to dynamically interact with the data on maps.
